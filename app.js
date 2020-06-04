@@ -1,4 +1,5 @@
 //jshint esversion:6
+require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
@@ -7,6 +8,8 @@ const session = require("express-session");
 const passport = require("passport");
 const _ = require("lodash");
 const passportLocalMongoose = require("passport-local-mongoose");
+const GoogleStrategy = require("passport-google-oauth20").Strategy;
+const findOrCreate = require("mongoose-findorcreate");
 
 const app = express();
 
@@ -51,6 +54,8 @@ mongoose.set("useCreateIndex", true);
 const userSchema = new mongoose.Schema({
   email: String,
   password: String,
+  googleId: String,
+  list: String,
 });
 
 //items schema
@@ -60,6 +65,7 @@ const itemsSchema = {
 
 //hash and salt password
 userSchema.plugin(passportLocalMongoose);
+userSchema.plugin(findOrCreate);
 
 //Create user when post request is made by Register
 const User = new mongoose.model("User", userSchema);
@@ -90,13 +96,48 @@ const List = mongoose.model("List", listSchema);
 
 passport.use(User.createStrategy());
 
-passport.serializeUser(User.serializeUser());
+passport.serializeUser(function (user, done) {
+  done(null, user.id);
+});
 
-passport.deserializeUser(User.deserializeUser());
+passport.deserializeUser(function (id, done) {
+  User.findById(id, function (err, user) {
+    done(err, user);
+  });
+});
+
+passport.use(
+  new GoogleStrategy(
+    {
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      callbackURL: "http://localhost:5000/auth/google/ToDoList",
+      userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo",
+    },
+    function (accessToken, refreshToken, profile, cb) {
+      User.findOrCreate({ googleId: profile.id }, function (err, user) {
+        return cb(err, user);
+      });
+    }
+  )
+);
 
 app.get("/", (req, res) => {
   res.render("home");
 });
+
+app.get(
+  "/auth/google",
+  passport.authenticate("google", { scope: ["profile"] })
+);
+
+app.get(
+  "/auth/google/ToDoList",
+  passport.authenticate("google", { failureRedirect: "/login" }),
+  function (req, res) {
+    res.redirect("/list");
+  }
+);
 
 app.get("/login", (req, res) => {
   res.render("login");
@@ -117,9 +158,18 @@ app.get("/list", (req, res) => {
             console.log("Successfully savevd default items to DB.");
           }
         });
-        res.redirect("/");
+        res.redirect("/list");
       } else {
-        res.render("list", { listTitle: "Today", newListItems: foundItems });
+        User.find({}, function (err, users) {
+          if (err) {
+            console.log(err);
+          } else {
+            res.render("list", {
+              listTitle: "Today",
+              newListItems: foundItems,
+            });
+          }
+        });
       }
     });
   } else {
@@ -146,6 +196,7 @@ app.get("/:customListName", function (req, res) {
         if (!foundList) {
           //create a new List
           const list = new List({
+            userName: req.email,
             name: customListName,
             items: defaultItems,
           });
@@ -218,6 +269,20 @@ app.post("/list", (req, res) => {
       res.redirect("/" + listName);
     });
   }
+
+  // User.findByIdAndUpdate(req.user.id, function (err, foundUser) {
+  //   if (err) {
+  //     console.log(err);
+  //   } else {
+  //     if (foundUser) {
+  //       foundUser.list = itemName;
+  //       foundUser.save(function () {
+  //         itemName.save();
+  //         res.redirect("/list");
+  //       });
+  //     }
+  //   }
+  // });
 });
 
 app.post("/delete", (req, res) => {

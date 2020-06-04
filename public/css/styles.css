@@ -1,11 +1,11 @@
 body {
-  background-color: #49a3e7;
+  background-color: #b0e0e6;
 }
 
 .centered {
   padding-top: 200px;
   text-align: center;
-  background-color: #49a3e7;
+  background-color: #b0e0e6;
 }
 
 .secret-text {
@@ -16,13 +16,34 @@ body {
 }
 
 .card-body {
-  background-color: black;
+  background-color: fff;
+  color: #b0e0e6;
+}
+
+.col-sm-4 .btn {
+  background-color: #ff3333;
+}
+
+.col-sm-4 .btn-primary {
+  background-color: #0000e6;
+}
+
+.col-sm-4 .card {
+  background-color: #b0e0e6;
+  border: none;
+}
+
+.sameLine {
+  white-space: nowrap;
+}
+
+.container h1 {
   color: white;
 }
 
-
 footer {
+  padding-top: 4rem;
+  background-color: #b0e0e6;
   color: white;
-  color: rgba(0, 0, 0, 0.5);
   text-align: center;
 }

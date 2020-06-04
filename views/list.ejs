@@ -22,7 +22,10 @@
     <form class="item" action="/list" method="post">
       <input type="text" name="newItem" placeholder="New Item" autocomplete="off">
       <button type="submit" name="list" value="<%= listTitle %>">+</button>
+      
     </form>
+
+    <a class="btn logout-btn btn-danger btn-lg" href="/logout" role="button">Log Out</a>
 </div>
 
 <%- include('partials/footer') %>
