@@ -1,0 +1,28 @@
+body {
+  background-color: #49a3e7;
+}
+
+.centered {
+  padding-top: 200px;
+  text-align: center;
+  background-color: #49a3e7;
+}
+
+.secret-text {
+  text-align: center;
+  font-size: 2rem;
+  color: #fff;
+  background-color: #49a3e7;
+}
+
+.card-body {
+  background-color: black;
+  color: white;
+}
+
+
+footer {
+  color: white;
+  color: rgba(0, 0, 0, 0.5);
+  text-align: center;
+}
